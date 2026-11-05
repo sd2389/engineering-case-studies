@@ -66,6 +66,44 @@ ERP, CRM, HR, and support workflows needed a unified employee experience without
 
 The platform centralizes identity and navigation while letting each application retain ownership of its domain data. This adds federation work, but it avoids a tightly coupled database shared by unrelated products.
 
+## 4. Self-Hosted Observability Platform
+
+**Problem**
+
+A small production footprint spread across an office-hosted server, a separate VPS for the agent runtime, and AWS EC2 for the commerce backend needed one place to see health, logs, and alerts, without exposing monitoring endpoints to the public internet.
+
+**System**
+
+- Docker Compose stack on an office-hosted Ubuntu VM: Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, node_exporter, cAdvisor, YACE, a custom read-only AWS inventory exporter, cloudflared, and a read-only Docker socket proxy (13 containers once Tempo was added)
+- Host and container metrics from node_exporter and cAdvisor; blackbox probes for websites, APIs, reachability, response time, and certificate expiry
+- AWS CloudWatch metrics through YACE with read-only access; Django, FastAPI, and Celery metrics reach Prometheus over Tailscale
+- Loki and Alloy collect server-side logs (Mattermost, nginx, selected systemd journal units, fail2ban) with 30-day retention and bounded storage; Prometheus keeps 15 days or 12 GB
+- Alertmanager routes alerts to a Mattermost monitoring channel, incident tickets, and ntfy phone notifications
+- Self-hosted Mattermost (customized build from a GitHub Container Registry image, PostgreSQL, nginx with TLS), with nightly restic snapshots and offsite copies to Cloudflare R2
+
+**Decisions that mattered**
+
+- Published Grafana only through Cloudflare Tunnel and Cloudflare Access with an identity-restricted one-time-PIN policy; core monitoring endpoints stay bound locally, and Tailscale carries private host-to-host traffic.
+- Gave the log collector Docker access only through a read-only socket proxy, and used read-only AWS access for CloudWatch and inventory metrics.
+- Ran backups, security checks, restore tests, and scripted k6 checks as systemd timers, so scheduled work is visible and restartable.
+- Tested backups by restoring into disposable containers and checking database row counts, rather than trusting that snapshots exist.
+
+**Scale represented in the system**
+
+15 provisioned Grafana dashboards, 76 alert rules, 64 recording rules, and checks covering backups, disk capacity, security services, administrator MFA, database storage, and domain and certificate expiry.
+
+**What it caught**
+
+- A Mattermost administrator account without MFA.
+- False alarms from an intentionally idle blue/green backend, which led to correcting the alert rules.
+- A certificate-renewal connectivity problem, found during a dry run.
+
+**Not done yet**
+
+- Tempo is deployed, but no service emits traces yet.
+- AWS backend logs still live in CloudWatch rather than Loki.
+- An offsite disaster-recovery restore from R2 has not been tested.
+
 ## Engineering principles
 
 - Put business rules behind stable service boundaries.
