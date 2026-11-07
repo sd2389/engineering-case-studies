@@ -22,13 +22,13 @@ The original system documentation describes **4,000+ designs** and a **127+ rout
 
 ### Cross-browser tag scanning
 
-A merged [camera scanning change](https://github.com/sd2389/devjewels-frontend/pull/15) chooses native barcode decoding only when the browser supports the relevant formats; otherwise it uses ZXing. It also handles empty native reads, camera constraint failures, and user-facing permission errors without breaking manual or hardware scan paths.
+A merged camera-scanning change (private frontend PR #15) chooses native barcode decoding only when the browser supports the relevant formats; otherwise it uses ZXing. It also handles empty native reads, camera constraint failures, and user-facing permission errors without breaking manual or hardware scan paths.
 
 **Tradeoff:** Capability detection is more reliable than a browser-name switch, but true device/browser field validation remains necessary.
 
 ### Large mobile photos
 
-Merged [direct-to-object-storage upload work](https://github.com/sd2389/devjewels-frontend/pull/40) avoids routing large mobile files through a small reverse-proxy body limit: request an upload URL, send the bytes directly to object storage, then save only the object reference and related metadata. The server still validates the resulting record.
+Merged direct-to-object-storage upload work (private frontend PR #40) avoids routing large mobile files through a small reverse-proxy body limit: request an upload URL, send the bytes directly to object storage, then save only the object reference and related metadata. The server still validates the resulting record.
 
 **Tradeoff:** Direct uploads reduce application-server transfer costs, but require careful short-lived upload authorization and cleanup of orphaned assets.
 
