@@ -16,14 +16,14 @@ This is a curated, **decision-first** collection of work across agent systems, S
 | **[AI agent operations + Hermes contributions](case-studies/ai-agents-and-hermes.md)** | Delegate work safely; preserve human control during incident-to-fix automation | Self-hosted workflows; [two upstream PRs under review](https://github.com/NousResearch/hermes-agent/pulls?q=is%3Apr+author%3Asd2389) |
 | **[MacUp — native macOS maintenance tool](case-studies/macup.md)** | Make software changes explainable, least-privileged, and reversible | [Open source](https://github.com/sd2389/macup); [v0.4.0 prerelease](https://github.com/sd2389/macup/releases/tag/v0.4.0) |
 | **[MIST control plane](case-studies/mist-control-plane.md)** | Prove tenant, role, app, and service authority across products | Documented Keycloak / outbox E2E; integration gates remain |
-| **[Jewelry visual search](case-studies/visual-search.md)** | Match visual queries correctly without inventing semantic-search capabilities | [59 targeted tests reported on open PR](https://github.com/sd2389/Mist-AI/pull/1); not production vector retrieval |
+| **[Jewelry visual search](case-studies/visual-search.md)** | Match visual queries correctly without inventing semantic-search capabilities | 59 targeted tests reported on a private open PR; not production vector retrieval |
 
 ## Product and infrastructure studies
 
 | Case study | What it demonstrates | Evidence / maturity |
 | --- | --- | --- |
 | [MIST Studio — browser-based CAD and rendering](case-studies/mist-studio.md) | Interactive 3D, reusable scene state, WebGPU fallback, storefront embeds | [Public implementation](https://github.com/sd2389/studio.mist.com) |
-| [DevJewels commerce, scanning, and inventory](case-studies/commerce-and-scanning.md) | Server-authoritative pricing, unique-item identity, reliable scanning, direct media uploads | Implemented workflows; [merged barcode change](https://github.com/sd2389/devjewels-frontend/pull/15); RFID is in progress |
+| [DevJewels commerce, scanning, and inventory](case-studies/commerce-and-scanning.md) | Server-authoritative pricing, unique-item identity, reliable scanning, direct media uploads | Implemented workflows; merged barcode improvement (private code); RFID is in progress |
 | [CRM, Sales, Unify, and Channels](case-studies/business-product-boundaries.md) | Service/data ownership, tenant permissions, clear demo-vs-live contracts | Product slices and adapters; [public Channels code](https://github.com/sd2389/devjewels-channels) |
 | [Self-hosted observability and recovery](case-studies/observability-and-recovery.md) | Protected monitoring, alert reliability, restore verification | Documented deployed setup and uncompleted DR checks |
 | [Federated enterprise systems](case-studies/federated-enterprise.md) | Shared identity without a shared business-data free-for-all | Earlier architecture; retained as historical work |
