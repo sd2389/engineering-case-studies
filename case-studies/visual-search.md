@@ -21,7 +21,7 @@ A jewelry search experience must translate a customer's picture into relevant, e
 
 ## Proof and current limits
 
-The [visual-search PR](https://github.com/sd2389/Mist-AI/pull/1) documents **59 passing targeted tests** on its stated head, including invalid-image handling, query filtering, authentication, and tenant isolation.
+The private visual-search PR #1 documents **59 passing targeted tests** on its stated head, including invalid-image handling, query filtering, authentication, and tenant isolation.
 
 Importantly, that PR is **open and not merged**. Its matching implementation is crop/perceptual-and-token based, with an O(n) candidate scan and a full-frame fallback. It does **not** implement FashionCLIP embeddings, pgvector ANN search, or an RF-DETR detector. Those are future architecture options, not shipped features.
 
@@ -31,6 +31,6 @@ A simpler deterministic pipeline is easier to test and debug than claiming an op
 
 ## Evidence
 
-- Code review and test record: [Mist AI visual-search PR #1](https://github.com/sd2389/Mist-AI/pull/1) (implementation repository may not be publicly accessible)
+- Code review and test record: Mist AI visual-search PR #1 (private implementation; evidence can be shared with authorized reviewers)
 
 **Lesson:** Make the result honest, safe, and testable before calling it intelligent.
