@@ -1,119 +1,68 @@
 # Engineering Case Studies
 
-Sanitized notes on systems I have built or helped build. The focus is on engineering decisions: boundaries, data flow, reliability, security, and the tradeoffs behind the implementation.
+**Smit Desai** · Software engineering, platform systems, AI-integrated products  
+[GitHub](https://github.com/sd2389) · [LinkedIn](https://www.linkedin.com/in/smssmit/) · [Selected open-source project: MacUp](https://github.com/sd2389/macup)
 
-This repository intentionally contains no employer source code, credentials, customer data, internal schemas, or deployment secrets.
+> I build systems where product decisions have engineering consequences: who can act, which data is authoritative, what happens when a dependency fails, and how to recover without hiding the failure.
 
-## 1. B2B Jewelry Commerce Platform
+This is a curated, **decision-first** collection of work across agent systems, SaaS infrastructure, computer vision, native developer tools, and jewelry commerce. The goal is to explain **what I built, why I made a choice, what evidence supports it, and what remains unfinished**—not to present every prototype as a shipped product.
 
-**Problem**
+**Last reviewed:** November 7, 2026.
 
-A legacy ERP and storefront needed to support live wholesale inventory, customer-specific pricing, supplier data, and ordering without allowing the browser to become the source of truth for price or availability.
+## Start here
 
-**System**
+| Case study | Engineering problem | Evidence / maturity |
+| --- | --- | --- |
+| **[AI agent operations + Hermes contributions](case-studies/ai-agents-and-hermes.md)** | Delegate work safely; preserve human control during incident-to-fix automation | Self-hosted workflows; [two upstream PRs under review](https://github.com/NousResearch/hermes-agent/pulls?q=is%3Apr+author%3Asd2389) |
+| **[MacUp — native macOS maintenance tool](case-studies/macup.md)** | Make software changes explainable, least-privileged, and reversible | [Open source](https://github.com/sd2389/macup); [v0.4.0 prerelease](https://github.com/sd2389/macup/releases/tag/v0.4.0) |
+| **[MIST control plane](case-studies/mist-control-plane.md)** | Prove tenant, role, app, and service authority across products | Documented Keycloak / outbox E2E; integration gates remain |
+| **[Jewelry visual search](case-studies/visual-search.md)** | Match visual queries correctly without inventing semantic-search capabilities | 59 targeted tests reported on a private open PR; not production vector retrieval |
 
-- Hybrid Django + FastAPI backend on AWS EC2, with nginx routing admin and storefront traffic
-- Next.js 16 and TypeScript storefront spanning 127+ routes
-- PostgreSQL as the transactional source of truth
-- Redis for live supplier inventory caching and fast visibility controls
-- Shared service and data layers across 24 Django apps so Django and FastAPI do not duplicate business rules
+## Product and infrastructure studies
 
-**Decisions that mattered**
+| Case study | What it demonstrates | Evidence / maturity |
+| --- | --- | --- |
+| [MIST Studio — browser-based CAD and rendering](case-studies/mist-studio.md) | Interactive 3D, reusable scene state, WebGPU fallback, storefront embeds | [Public implementation](https://github.com/sd2389/studio.mist.com) |
+| [DevJewels commerce, scanning, and inventory](case-studies/commerce-and-scanning.md) | Server-authoritative pricing, unique-item identity, reliable scanning, direct media uploads | Implemented workflows; merged barcode improvement (private code); RFID is in progress |
+| [CRM, Sales, Unify, and Channels](case-studies/business-product-boundaries.md) | Service/data ownership, tenant permissions, clear demo-vs-live contracts | Product slices and adapters; [public Channels code](https://github.com/sd2389/devjewels-channels) |
+| [Self-hosted observability and recovery](case-studies/observability-and-recovery.md) | Protected monitoring, alert reliability, restore verification | Documented deployed setup and uncompleted DR checks |
+| [Federated enterprise systems](case-studies/federated-enterprise.md) | Shared identity without a shared business-data free-for-all | Earlier architecture; retained as historical work |
 
-- Kept checkout server-authoritative and stored pricing snapshots with each order.
-- Modeled a four-tier pricing hierarchy instead of scattering price calculations across UI components.
-- Normalized supplier payloads into a canonical diamond model before exposing inventory.
-- Used hashed API keys, scoped permissions, and IP allowlists for B2B integrations.
-- Put feature flags around navigation and releases so incomplete workflows stayed isolated.
+## How to read these studies
 
-**Scale represented in the system**
+Every study uses a consistent structure:
 
-4,000+ jewelry designs, live stock and memo inventory, multi-supplier diamond feeds, and external customer API access.
+1. **Problem** — why the engineering work mattered.
+2. **Design / decisions** — the important alternatives and boundaries.
+3. **Implementation evidence** — repository, pull request, test, or documented workflow where available.
+4. **Tradeoffs and limits** — what is still experimental, gated, or unverified.
 
-## 2. AI Agent Orchestration Platform
+Status language is intentionally strict:
 
-**Problem**
-
-A collection of specialist agents needed clear ownership, durable context, model failover, and human control over consequential actions.
-
-**System**
-
-- 13 specialist agents with isolated memory and procedural learning
-- Dispatcher that routes incoming work to the best-fit agent
-- LLM routing across 20+ providers with automatic failover
-- Messaging gateway spanning 15+ platforms, including Telegram, Discord, Slack, and WhatsApp
-- Docker deployment with Sentry-based incident intake
-
-**Safety boundary**
-
-Sentry events can trigger diagnosis and produce a proposed GitHub fix, but a human approval step is required before code ships. The system is designed to automate investigation and preparation without silently turning suggestions into production changes.
-
-## 3. Federated ERP / CRM Platform
-
-**Problem**
-
-ERP, CRM, HR, and support workflows needed a unified employee experience without merging every application into one database or duplicating business data.
-
-**System**
-
-- Frappe Bench deployment with ERPNext, CRM, HRMS, and Helpdesk on separate sites
-- Shared PostgreSQL infrastructure and Redis queues
-- Keycloak OIDC single sign-on
-- Federation Hub for unified navigation, role mapping, provisioning, and cross-site metrics
-- Docker Compose and automation scripts for repeatable startup, migrations, and routing
-
-**Tradeoff**
-
-The platform centralizes identity and navigation while letting each application retain ownership of its domain data. This adds federation work, but it avoids a tightly coupled database shared by unrelated products.
-
-## 4. Self-Hosted Observability Platform
-
-**Problem**
-
-A small production footprint spread across an office-hosted server, a separate VPS for the agent runtime, and AWS EC2 for the commerce backend needed one place to see health, logs, and alerts, without exposing monitoring endpoints to the public internet.
-
-**System**
-
-- Docker Compose stack on an office-hosted Ubuntu VM: Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, node_exporter, cAdvisor, YACE, a custom read-only AWS inventory exporter, cloudflared, and a read-only Docker socket proxy (13 containers once Tempo was added)
-- Host and container metrics from node_exporter and cAdvisor; blackbox probes for websites, APIs, reachability, response time, and certificate expiry
-- AWS CloudWatch metrics through YACE with read-only access; Django, FastAPI, and Celery metrics reach Prometheus over Tailscale
-- Loki and Alloy collect server-side logs (Mattermost, nginx, selected systemd journal units, fail2ban) with 30-day retention and bounded storage; Prometheus keeps 15 days or 12 GB
-- Alertmanager routes alerts to a Mattermost monitoring channel, incident tickets, and ntfy phone notifications
-- Self-hosted Mattermost (customized build from a GitHub Container Registry image, PostgreSQL, nginx with TLS), with nightly restic snapshots and offsite copies to Cloudflare R2
-
-**Decisions that mattered**
-
-- Published Grafana only through Cloudflare Tunnel and Cloudflare Access with an identity-restricted one-time-PIN policy; core monitoring endpoints stay bound locally, and Tailscale carries private host-to-host traffic.
-- Gave the log collector Docker access only through a read-only socket proxy, and used read-only AWS access for CloudWatch and inventory metrics.
-- Ran backups, security checks, restore tests, and scripted k6 checks as systemd timers, so scheduled work is visible and restartable.
-- Tested backups by restoring into disposable containers and checking database row counts, rather than trusting that snapshots exist.
-
-**Scale represented in the system**
-
-15 provisioned Grafana dashboards, 76 alert rules, 64 recording rules, and checks covering backups, disk capacity, security services, administrator MFA, database storage, and domain and certificate expiry.
-
-**What it caught**
-
-- A Mattermost administrator account without MFA.
-- False alarms from an intentionally idle blue/green backend, which led to correcting the alert rules.
-- A certificate-renewal connectivity problem, found during a dry run.
-
-**Not done yet**
-
-- Tempo is deployed, but no service emits traces yet.
-- AWS backend logs still live in CloudWatch rather than Loki.
-- An offsite disaster-recovery restore from R2 has not been tested.
+- **Published / merged:** a release or merged change exists. This does not automatically prove real-world adoption.
+- **Implemented / tested:** code and a local or documented verification path exist; not necessarily a production cutover.
+- **Open PR / in progress:** a proposal or partial integration, **not** a shipped feature.
+- **Historical:** useful earlier engineering work, not claimed as today's active product.
 
 ## Engineering principles
 
-- Put business rules behind stable service boundaries.
-- Treat the server and database as authoritative for transactional state.
-- Design access control before exposing an integration.
-- Prefer observable, recoverable background work over hidden automation.
-- Keep operational shortcuts from becoming permanent architecture.
+- **Authority before automation.** A system should prove who is allowed to change state before offering one-click actions or agent workflows.
+- **Server-side truth for transactions.** Pricing, unique inventory units, access decisions, and irreversible operations must not depend on browser assumptions.
+- **Clear data ownership.** Integrations are easier to reason about when product boundaries and failure behavior are explicit.
+- **Observable recovery.** Backups, retries, and monitoring are only valuable when failures can be detected and the recovery path can be tested.
+- **Earn the AI label.** Distinguish actual search/retrieval methods and measured test coverage from future embedding/vector-search plans.
+- **Product quality includes restraint.** Showing the exact command, explaining a rejected action, or preserving a merchant's data is a feature.
 
-## Related repositories
+## What this portfolio does not claim
 
-- [GitHub profile](https://github.com/sd2389)
+Hermes is an upstream open-source project I contribute to, **not a codebase I authored**. The two referenced upstream fixes are **unmerged** as of this review. The jewelry visual-search PR does **not** implement FashionCLIP/pgvector/RF-DETR. MIST's multi-product rollout is **not complete**, CRM communications/AI use safe stub adapters in the reviewed code, and Sales example data is **not real revenue**. RFID designs are **not** evidence of complete physical-tag detection under occlusion.
+
+Some commercial implementations are private. These notes intentionally exclude credentials, employer/customer data, confidential configuration, and proprietary source code. Public links and clearly marked test reports are supplied when available.
+
+## Other projects
+
 - [TownHall](https://github.com/sd2389/TownHall)
-- [Product Intelligence](https://github.com/sd2389/product-intelligence)
+- [Product Intelligence — simulated-data prototype](https://github.com/sd2389/product-intelligence)
+- [GitHub profile](https://github.com/sd2389)
+
+For technical discussion or collaboration, reach me on [LinkedIn](https://www.linkedin.com/in/smssmit/).
